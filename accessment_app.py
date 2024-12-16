@@ -144,10 +144,3 @@ Original file is located at
 #             st.write(f"Mean Squared Error: {mse:.2f}")
 # else:
 #     st.warning("Please upload a CSV file to proceed.")
-#
-
-!pip install streamlit
-
-! wget -q -O - ipv4.icanhazip.com
-
-!streamlit run accessmentapp.py & npx localtunnel --port 8501
