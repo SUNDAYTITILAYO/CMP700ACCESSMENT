@@ -93,16 +93,6 @@ if file_loaded and "data" in st.session_state:
                     ax.set_ylabel(y_axis)
                 st.pyplot(fig)
 
-        elif chart_type == "Word Cloud":
-            text_column = st.selectbox("Select Text Column", columns)
-            if text_column:
-                text_data = " ".join(data[text_column].astype(str).dropna())
-                wordcloud = WordCloud(stopwords=STOPWORDS, background_color="white").generate(text_data)
-                plt.figure(figsize=(10, 6))
-                plt.imshow(wordcloud, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
-
     # Tab 3: Modeling
     with tab3:
         st.header("Modeling")
