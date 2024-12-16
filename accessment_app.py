@@ -48,7 +48,7 @@ if file_loaded and "data" in st.session_state:
         st.header("Basic EDA")
         selected_EDA = st.multiselect(
             "Select EDA operations",
-            ["Basic Statistics", "Missing Values", "Data Description", "Missing Values Percentage"]
+            ["Basic Statistics", "Missing Values", "Data Description", "Missing Values Percentage","Data Summary"]
         )
 
         if "Basic Statistics" in selected_EDA:
@@ -66,6 +66,9 @@ if file_loaded and "data" in st.session_state:
         if "Missing Values Percentage" in selected_EDA:
             st.subheader("Missing Values Percentage")
             st.write(data.isnull().mean() * 100)
+         if "Data Summary" in selected_EDA:
+             st.subheader("Data Summary")
+             st.write(data.info())
 
     # Tab 2: Visualization
     with tab2:
