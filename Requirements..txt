@@ -1,13 +1,9 @@
  streamlit 
  pandas 
  numpy 
- plotly.express 
+ plotly 
  wordcloud 
- matplotlib.pyplot 
+ matplotli
  sklearn
- sklearn.metrics 
- sklearn.linear_model 
- sklearn.ensemble 
- sklearn.svm import SVR
- sklearn.tree 
- sklearn.neighbors 
+ sklearn.model 
+ 
