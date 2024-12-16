@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -29,16 +28,13 @@ def load_data():
     return False
 
 
-# Check if data is already loaded
-if "data" not in st.session_state:
-    st.session_state["data"] = None
-
-if st.session_state["data"] is None:
+# Load data if not already in session state
+if "data" not in st.session_state or st.session_state["data"] is None:
     file_loaded = load_data()
 else:
     file_loaded = True
 
-# Main app logic
+# Check if data is loaded
 if file_loaded and "data" in st.session_state:
     data = st.session_state["data"]
 
@@ -79,26 +75,33 @@ if file_loaded and "data" in st.session_state:
             x_axis = st.selectbox("Select X-axis", columns)
             y_axis = st.selectbox("Select Y-axis", columns)
             if x_axis and y_axis:
+                fig, ax = plt.subplots(figsize=(10, 6))
                 if chart_type == "Scatter Plot":
-                    fig = px.scatter(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
+                    ax.scatter(data[x_axis], data[y_axis], alpha=0.7)
+                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
                 elif chart_type == "Bar Chart":
-                    fig = px.bar(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
+                    ax.bar(data[x_axis], data[y_axis], alpha=0.7)
+                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
                 elif chart_type == "Line Chart":
-                    fig = px.line(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
-                st.plotly_chart(fig)
+                    ax.plot(data[x_axis], data[y_axis], alpha=0.7)
+                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
+                st.pyplot(fig)
 
         elif chart_type == "Word Cloud":
             text_column = st.selectbox("Select Text Column", columns)
             if text_column:
                 text_data = " ".join(data[text_column].astype(str).dropna())
-                if not text_data.strip():
-                    st.warning("Selected column has no valid text for word cloud generation.")
-                else:
-                    wordcloud = WordCloud(stopwords=STOPWORDS, background_color="white").generate(text_data)
-                    plt.figure(figsize=(10, 6))
-                    plt.imshow(wordcloud, interpolation="bilinear")
-                    plt.axis("off")
-                    st.pyplot(plt)
+                wordcloud = WordCloud(stopwords=STOPWORDS, background_color="white").generate(text_data)
+                plt.figure(figsize=(10, 6))
+                plt.imshow(wordcloud, interpolation="bilinear")
+                plt.axis("off")
+                st.pyplot(plt)
 
     # Tab 3: Modeling
     with tab3:
