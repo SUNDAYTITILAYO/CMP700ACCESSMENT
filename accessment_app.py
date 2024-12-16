@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -11,7 +12,6 @@ from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 
-
 # Function to load data
 def load_data():
     st.title("Assessment App")  # App title
@@ -19,6 +19,9 @@ def load_data():
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
+            # Ensure column types are clean for serialization
+            for col in df.select_dtypes(include=["object"]):
+                df[col] = df[col].astype(str)
             st.session_state["data"] = df  # Save to session state
             st.success("File uploaded and loaded successfully!")
             return True
@@ -26,7 +29,6 @@ def load_data():
             st.error(f"Error reading file: {e}")
             return False
     return False
-
 
 # Load data if not already in session state
 if "data" not in st.session_state or st.session_state["data"] is None:
@@ -75,33 +77,29 @@ if file_loaded and "data" in st.session_state:
             x_axis = st.selectbox("Select X-axis", columns)
             y_axis = st.selectbox("Select Y-axis", columns)
             if x_axis and y_axis:
-                fig, ax = plt.subplots(figsize=(10, 6))
-                if chart_type == "Scatter Plot":
-                    ax.scatter(data[x_axis], data[y_axis], alpha=0.7)
-                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
-                    ax.set_xlabel(x_axis)
-                    ax.set_ylabel(y_axis)
-                elif chart_type == "Bar Chart":
-                    ax.bar(data[x_axis], data[y_axis], alpha=0.7)
-                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
-                    ax.set_xlabel(x_axis)
-                    ax.set_ylabel(y_axis)
-                elif chart_type == "Line Chart":
-                    ax.plot(data[x_axis], data[y_axis], alpha=0.7)
-                    ax.set_title(f"{chart_type} of {x_axis} vs {y_axis}")
-                    ax.set_xlabel(x_axis)
-                    ax.set_ylabel(y_axis)
-                st.pyplot(fig)
+                if pd.api.types.is_numeric_dtype(data[x_axis]) and pd.api.types.is_numeric_dtype(data[y_axis]):
+                    if chart_type == "Scatter Plot":
+                        fig = px.scatter(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
+                    elif chart_type == "Bar Chart":
+                        fig = px.bar(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
+                    elif chart_type == "Line Chart":
+                        fig = px.line(data, x=x_axis, y=y_axis, title=f"{chart_type} of {x_axis} vs {y_axis}")
+                    st.plotly_chart(fig)
+                else:
+                    st.error("Both X-axis and Y-axis columns must contain numeric data.")
 
         elif chart_type == "Word Cloud":
             text_column = st.selectbox("Select Text Column", columns)
             if text_column:
-                text_data = " ".join(data[text_column].astype(str).dropna())
-                wordcloud = WordCloud(stopwords=STOPWORDS, background_color="white").generate(text_data)
-                plt.figure(figsize=(10, 6))
-                plt.imshow(wordcloud, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
+                try:
+                    text_data = " ".join(data[text_column].astype(str).dropna())
+                    wordcloud = WordCloud(stopwords=STOPWORDS, background_color="white").generate(text_data)
+                    plt.figure(figsize=(10, 6))
+                    plt.imshow(wordcloud, interpolation="bilinear")
+                    plt.axis("off")
+                    st.pyplot(plt)
+                except Exception as e:
+                    st.error(f"Error generating Word Cloud: {e}")
 
     # Tab 3: Modeling
     with tab3:
@@ -113,6 +111,10 @@ if file_loaded and "data" in st.session_state:
             X = data[features]
             y = data[target]
 
+            # Handle missing values
+            X = X.fillna(X.mean())
+            y = y.fillna(y.mean())
+
             # Train-Test Split
             test_size = st.slider("Test Size (%)", 10, 50, 20) / 100
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
@@ -123,24 +125,27 @@ if file_loaded and "data" in st.session_state:
                 ["Linear Regression", "Decision Tree", "Random Forest", "SVR", "KNN"]
             )
 
-            if model_type == "Linear Regression":
-                model = LinearRegression()
-            elif model_type == "Decision Tree":
-                model = DecisionTreeRegressor()
-            elif model_type == "Random Forest":
-                model = RandomForestRegressor()
-            elif model_type == "SVR":
-                model = SVR()
-            elif model_type == "KNN":
-                model = KNeighborsRegressor()
+            try:
+                if model_type == "Linear Regression":
+                    model = LinearRegression()
+                elif model_type == "Decision Tree":
+                    model = DecisionTreeRegressor()
+                elif model_type == "Random Forest":
+                    model = RandomForestRegressor()
+                elif model_type == "SVR":
+                    model = SVR()
+                elif model_type == "KNN":
+                    model = KNeighborsRegressor()
 
-            # Fit and Predict
-            model.fit(X_train, y_train)
-            predictions = model.predict(X_test)
+                # Fit and Predict
+                model.fit(X_train, y_train)
+                predictions = model.predict(X_test)
 
-            # Metrics
-            mse = mean_squared_error(y_test, predictions)
-            st.subheader("Model Performance")
-            st.write(f"Mean Squared Error: {mse:.2f}")
+                # Metrics
+                mse = mean_squared_error(y_test, predictions)
+                st.subheader("Model Performance")
+                st.write(f"Mean Squared Error: {mse:.2f}")
+            except Exception as e:
+                st.error(f"Error in modeling: {e}")
 else:
     st.warning("Please upload a CSV file to proceed.")
