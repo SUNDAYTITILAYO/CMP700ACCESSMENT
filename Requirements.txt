@@ -1,9 +1,7 @@
- streamlit 
- pandas 
- numpy 
- plotly 
- wordcloud 
- matplotli
- sklearn
- sklearn.model 
- 
+ streamlit
+pandas
+numpy
+plotly
+matplotlib
+wordcloud
+scikit-learn
