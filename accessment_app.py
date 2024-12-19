@@ -66,7 +66,7 @@ if file_loaded and "data" in st.session_state:
         if "Missing Values Percentage" in selected_EDA:
             st.subheader("Missing Values Percentage")
             st.write(data.isnull().mean() * 100)
-         if "Data Summary" in selected_EDA:
+        if "Data Summary" in selected_EDA:
              st.subheader("Data Summary")
              st.write(data.info())
 
